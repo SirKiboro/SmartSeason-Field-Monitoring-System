@@ -4,10 +4,10 @@ import com.smartseason.modules.field.dto.FieldCreateRequest;
 import com.smartseason.modules.field.dto.FieldResponse;
 import com.smartseason.modules.field.service.FieldService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/fields")
@@ -18,7 +18,18 @@ public class FieldController {
 
     @PostMapping("/register")
     public FieldResponse createField(@RequestBody FieldCreateRequest req) {
+
         return fieldService.createField(req);
+    }
+
+    @GetMapping
+    public List<FieldResponse> getAll(){
+        return fieldService.getAllFields();
+    }
+
+    @GetMapping("/{id}")
+    public FieldResponse getById (@PathVariable UUID id){
+        return fieldService.getFieldById(id);
     }
 
 }
