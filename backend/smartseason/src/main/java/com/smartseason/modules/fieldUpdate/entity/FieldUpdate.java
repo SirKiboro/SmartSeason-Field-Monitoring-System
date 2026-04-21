@@ -1,6 +1,6 @@
 package com.smartseason.modules.fieldUpdate.entity;
 
-import com.smartseason.common.enums.Stage;
+import com.smartseason.common.enums.FieldStage;
 import com.smartseason.modules.field.entity.Field;
 import com.smartseason.modules.user.entity.User;
 import jakarta.persistence.*;
@@ -26,7 +26,7 @@ public class FieldUpdate {
     private User agent;
 
     @Enumerated(EnumType.STRING)
-    private Stage stage;
+    private FieldStage fieldStage;
 
     private String notes;
 

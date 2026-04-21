@@ -1,7 +1,7 @@
 package com.smartseason.modules.field.dto;
 
 import com.smartseason.common.enums.FieldStatus;
-import com.smartseason.common.enums.Stage;
+import com.smartseason.common.enums.FieldStage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -15,10 +15,12 @@ public class FieldResponse {
     public String name;
     public String cropType;
     public LocalDate plantingDate;
-    public Stage stage;
+    public FieldStage fieldStage;
     public FieldStatus status;
+    public UUID assignedAgentId;
 
     public FieldResponse() {
 
     }
+
 }

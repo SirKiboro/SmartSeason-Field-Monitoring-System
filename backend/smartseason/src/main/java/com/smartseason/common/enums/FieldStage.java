@@ -1,6 +1,6 @@
 package com.smartseason.common.enums;
 
-public enum Stage {
+public enum FieldStage {
     PLANTED,
     GROWING,
     READY,

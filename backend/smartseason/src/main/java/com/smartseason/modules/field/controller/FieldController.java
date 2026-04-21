@@ -16,14 +16,14 @@ public class FieldController {
 
     private final FieldService fieldService;
 
-    @PostMapping("/register")
+    @PostMapping
     public FieldResponse createField(@RequestBody FieldCreateRequest req) {
 
         return fieldService.createField(req);
     }
 
     @GetMapping
-    public List<FieldResponse> getAll(){
+    public List<FieldResponse> getAllFields(){
         return fieldService.getAllFields();
     }
 

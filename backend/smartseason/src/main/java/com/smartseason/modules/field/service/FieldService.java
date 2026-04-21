@@ -1,11 +1,13 @@
 package com.smartseason.modules.field.service;
 
 import com.smartseason.common.enums.FieldStatus;
-import com.smartseason.common.enums.Stage;
+import com.smartseason.common.enums.FieldStage;
 import com.smartseason.modules.field.dto.FieldCreateRequest;
 import com.smartseason.modules.field.dto.FieldResponse;
 import com.smartseason.modules.field.entity.Field;
 import com.smartseason.modules.field.repository.FieldRepository;
+import com.smartseason.modules.user.entity.User;
+import com.smartseason.modules.user.repository.UserRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -18,27 +20,31 @@ public class FieldService {
 
     private final FieldRepository fieldRepository;
 
-    public FieldService(FieldRepository fieldRepository) {
+    private final UserRepository userRepository;
+
+    public FieldService(
+            FieldRepository fieldRepository, UserRepository userRepository) {
         this.fieldRepository = fieldRepository;
+        this.userRepository = userRepository;
     }
 
     // ---------------------------
     // 1. STATE TRANSITION RULES
     // ---------------------------
 
-    public void validateTransition(Stage current, Stage next) {
+    public void validateTransition(FieldStage current, FieldStage next) {
         if (next.ordinal() != current.ordinal() + 1) {
             throw new IllegalStateException("Invalid stage transition");
         }
     }
 
-    public void updateFieldStage(UUID fieldId, Stage newStage) {
+    public void updateFieldStage(UUID fieldId, FieldStage newFieldStage) {
 
         Field field = getFieldOrThrow(fieldId);
 
-        validateTransition(field.getStage(), newStage);
+        validateTransition(field.getFieldStage(), newFieldStage);
 
-        field.setStage(newStage);
+        field.setFieldStage(newFieldStage);
 
         fieldRepository.save(field);
     }
@@ -49,13 +55,13 @@ public class FieldService {
 
     public FieldStatus computeStatus(Field field) {
 
-        if (field.getStage() == Stage.HARVESTED) {
+        if (field.getFieldStage() == FieldStage.HARVESTED) {
             return FieldStatus.COMPLETED;
         }
 
         long days = daysSincePlanting(field);
 
-        int expected = expectedDays(field.getStage());
+        int expected = expectedDays(field.getFieldStage());
 
         return (days > expected)
                 ? FieldStatus.AT_RISK
@@ -69,8 +75,8 @@ public class FieldService {
         );
     }
 
-    private int expectedDays(Stage stage) {
-        return switch (stage) {
+    private int expectedDays(FieldStage fieldStage) {
+        return switch (fieldStage) {
             case PLANTED -> 7;
             case GROWING -> 37;
             case READY -> 44;
@@ -79,7 +85,7 @@ public class FieldService {
     }
 
     // ---------------------------
-    // 3. CREATION FLOW
+    // 3. CREATE
     // ---------------------------
 
     public FieldResponse createField(FieldCreateRequest req) {
@@ -88,7 +94,12 @@ public class FieldService {
         field.setName(req.name);
         field.setCropType(req.cropType);
         field.setPlantingDate(req.plantingDate);
-        field.setStage(Stage.PLANTED);
+        field.setFieldStage(FieldStage.PLANTED);
+
+        User agent = userRepository.findById(req.agentId)
+                .orElseThrow(() -> new RuntimeException("Agent not found"));
+
+        field.setAssignedAgent(agent);
 
         Field saved = fieldRepository.save(field);
 
@@ -109,17 +120,21 @@ public class FieldService {
     }
 
     // ---------------------------
-    // 5. MAPPING (kept local for now)
+    // 5. MAPPING (local for now)
     // ---------------------------
 
     private FieldResponse mapToResponse(Field field) {
+
+        FieldStatus status = computeStatus(field);
+
         FieldResponse res = new FieldResponse();
         res.id = field.getId();
         res.name = field.getName();
         res.cropType = field.getCropType();
         res.plantingDate = field.getPlantingDate();
-        res.stage = field.getStage();
-        res.status = computeStatus(field);
+        res.fieldStage = field.getFieldStage();
+        res.status = status;
+        res.assignedAgentId = field.getAssignedAgent().getId();
         return res;
     }
 
