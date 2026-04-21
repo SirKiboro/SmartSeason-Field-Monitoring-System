@@ -4,6 +4,7 @@ import com.smartseason.modules.field.dto.FieldCreateRequest;
 import com.smartseason.modules.field.dto.FieldResponse;
 import com.smartseason.modules.field.service.FieldService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +24,7 @@ public class FieldController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public List<FieldResponse> getAllFields(){
         return fieldService.getAllFields();
     }
